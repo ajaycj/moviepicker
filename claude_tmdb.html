@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Picker</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=1932&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .card-backdrop {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(23, 23, 23, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+        }
+
+        .poster-animation {
+            animation: zoomIn 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+        }
+
+        @keyframes zoomIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md p-6 sm:p-8 space-y-6 rounded-2xl card-backdrop shadow-2xl">
+        <h1 class="text-3xl font-bold text-center text-white">🎬 Movie Picker</h1>
+        <p class="text-center text-gray-300">Find the perfect movie for your mood!</p>
+
+        <div class="space-y-4">
+            <!-- Language Selection -->
+            <div>
+                <label for="language" class="block text-sm font-medium text-gray-200">Language</label>
+                <select id="language" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm p-3 focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi (Bollywood)</option>
+                    <option value="te">Telugu (Tollywood)</option>
+                    <option value="ta">Tamil (Kollywood)</option>
+                    <option value="kn">Kannada (Sandalwood)</option>
+                    <option value="ml">Malayalam (Mollywood)</option>
+                </select>
+            </div>
+
+            <!-- Genre Selection -->
+            <div>
+                <label for="genre" class="block text-sm font-medium text-gray-200">Genre</label>
+                <select id="genre" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm p-3 focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                    <option value="">Any</option>
+                    <option value="28">Action</option>
+                    <option value="12">Adventure</option>
+                    <option value="16">Animation</option>
+                    <option value="35">Comedy</option>
+                    <option value="80">Crime</option>
+                    <option value="18">Drama</option>
+                    <option value="10751">Family</option>
+                    <option value="14">Fantasy</option>
+                    <option value="27">Horror</option>
+                    <option value="9648">Mystery</option>
+                    <option value="10749">Romance</option>
+                    <option value="878">Sci-Fi</option>
+                    <option value="53">Thriller</option>
+                </select>
+            </div>
+            
+            <!-- Release Date Selection -->
+            <div>
+                <label for="releaseDate" class="block text-sm font-medium text-gray-200">Release Date</label>
+                <select id="releaseDate" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm p-3 focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                    <option value="new">New (2024-2025)</option>
+                    <option value="old">Old (Pre-2024)</option>
+                    <option value="any">Any</option>
+                </select>
+            </div>
+
+            <!-- OTT Platform Selection -->
+            <div>
+                <label for="platform" class="block text-sm font-medium text-gray-200">Preferred OTT Platform</label>
+                <select id="platform" class="mt-1 block w-full bg-gray-700 text-white border-gray-600 rounded-md shadow-sm p-3 focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50">
+                    <option value="">Any</option>
+                    <option value="8">Netflix</option>
+                    <option value="119">Prime Video</option>
+                    <option value="337">Disney+ Hotstar</option>
+                    <option value="237">SonyLIV</option>
+                    <option value="232">Zee5</option>
+                    <option value="220">JioCinema</option>
+                    <option value="532">Aha</option>
+                    <option value="309">Sun NXT</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button id="findMovieBtn" class="w-full flex justify-center items-center p-3 font-semibold text-white bg-indigo-600 rounded-md shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200">
+                <span id="btnText">Find My Movie!</span>
+                <div id="loadingSpinner" class="spinner hidden"></div>
+            </button>
+        </div>
+        
+        <!-- Loading Placeholder -->
+        <div id="posterLoading" class="hidden w-full h-80 bg-gray-700 rounded-lg flex items-center justify-center mt-6">
+             <div class="spinner"></div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="movieResult" class="hidden text-center text-white mt-6 space-y-4">
+            <!-- Movie Poster -->
+            <img id="moviePoster" src="" alt="Movie Poster" class="hidden w-full h-auto max-h-80 object-contain rounded-lg shadow-lg mx-auto" />
+            
+            <!-- Movie Details -->
+            <div id="movieDetails" class="hidden">
+                <h2 id="movieTitle" class="text-2xl font-bold"></h2>
+                <p class="text-lg text-gray-300">
+                    <span id="movieYear" class="font-semibold text-gray-300"></span>
+                </p>
+                <p class="text-sm text-gray-400 mt-2" id="movieOverview"></p>
+                <p class="text-lg text-gray-300 mt-2">
+                    Rating: <span id="movieRating" class="font-semibold text-yellow-300"></span>
+                </p>
+                <p class="text-lg text-gray-300">
+                    Available on: <span id="moviePlatform" class="font-semibold text-indigo-300"></span>
+                </p>
+            </div>
+            
+            <!-- Refresh Button -->
+            <button id="refreshBtn" class="w-full flex justify-center items-center p-3 mt-4 font-semibold text-white bg-gray-600 rounded-md shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-200">
+                Pick Another!
+            </button>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="errorMessage" class="hidden text-center text-red-400 p-3 bg-red-900 bg-opacity-50 rounded-md"></div>
+    </div>
+
+    <script>
+        // Get all element references
+        const findMovieBtn = document.getElementById('findMovieBtn');
+        const btnText = document.getElementById('btnText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const movieResult = document.getElementById('movieResult');
+        const movieTitle = document.getElementById('movieTitle');
+        const moviePlatform = document.getElementById('moviePlatform');
+        const movieYear = document.getElementById('movieYear');
+        const movieRating = document.getElementById('movieRating');
+        const movieOverview = document.getElementById('movieOverview');
+        const moviePoster = document.getElementById('moviePoster');
+        const posterLoading = document.getElementById('posterLoading');
+        const movieDetails = document.getElementById('movieDetails');
+        const errorMessage = document.getElementById('errorMessage');
+        const languageSelect = document.getElementById('language');
+        const genreSelect = document.getElementById('genre');
+        const platformSelect = document.getElementById('platform');
+        const releaseDateSelect = document.getElementById('releaseDate');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // --- PASTE YOUR TMDB API KEY HERE ---
+        const tmdbApiKey = "9832c9e838bd9c0e2cf7bb63db5673da";
+        
+        // TMDB Configuration
+        const tmdbBaseUrl = "https://api.themoviedb.org/3";
+        const tmdbImageBaseUrl = "https://image.tmdb.org/t/p/w500";
+        
+        // Platform names mapping
+        const platformNames = {
+            "8": "Netflix",
+            "119": "Prime Video",
+            "337": "Disney+ Hotstar",
+            "237": "SonyLIV",
+            "232": "Zee5",
+            "220": "JioCinema",
+            "532": "Aha",
+            "309": "Sun NXT"
+        };
+
+        // Main function to get movie suggestion
+        async function getMovieSuggestion() {
+            // Check if API key is set
+            if (tmdbApiKey === "PASTE_YOUR_TMDB_API_KEY_HERE" || tmdbApiKey === "") {
+                errorMessage.textContent = "TMDB API Key is missing. Please paste your TMDB API key in the script (around line 182).";
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            const language = languageSelect.value;
+            const genre = genreSelect.value;
+            const platform = platformSelect.value;
+            const releaseDate = releaseDateSelect.value;
+            
+            setLoading(true);
+
+            try {
+                // Build query parameters
+                let url = `${tmdbBaseUrl}/discover/movie?api_key=${tmdbApiKey}`;
+                url += `&with_original_language=${language}`;
+                url += `&sort_by=popularity.desc`;
+                url += `&vote_count.gte=10`; // Movies with at least 10 votes
+                
+                if (genre) {
+                    url += `&with_genres=${genre}`;
+                }
+                
+                // Date filtering
+                if (releaseDate === "new") {
+                    url += `&primary_release_date.gte=2024-01-01`;
+                    url += `&primary_release_date.lte=2025-12-31`;
+                } else if (releaseDate === "old") {
+                    url += `&primary_release_date.lte=2023-12-31`;
+                }
+                
+                // Platform filtering (watch providers)
+                if (platform) {
+                    url += `&with_watch_providers=${platform}`;
+                    url += `&watch_region=IN`; // India region
+                }
+
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`TMDB API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.results || data.results.length === 0) {
+                    throw new Error("No movies found matching your criteria. Try changing your filters!");
+                }
+
+                // Pick a random movie from the results
+                const randomIndex = Math.floor(Math.random() * Math.min(data.results.length, 10)); // Pick from top 10
+                const movie = data.results[randomIndex];
+
+                // Get watch providers for the movie
+                let availablePlatform = "Various Platforms";
+                if (platform) {
+                    availablePlatform = platformNames[platform] || "Selected Platform";
+                } else {
+                    // Try to fetch watch providers
+                    try {
+                        const providersResponse = await fetch(
+                            `${tmdbBaseUrl}/movie/${movie.id}/watch/providers?api_key=${tmdbApiKey}`
+                        );
+                        const providersData = await providersResponse.json();
+                        
+                        if (providersData.results?.IN?.flatrate) {
+                            const providers = providersData.results.IN.flatrate
+                                .slice(0, 2)
+                                .map(p => p.provider_name)
+                                .join(", ");
+                            availablePlatform = providers || "Various Platforms";
+                        }
+                    } catch (e) {
+                        console.warn("Could not fetch providers:", e);
+                    }
+                }
+
+                // Display movie details
+                movieTitle.textContent = movie.title;
+                movieYear.textContent = movie.release_date ? `(${movie.release_date.split('-')[0]})` : "";
+                movieRating.textContent = movie.vote_average ? `⭐ ${movie.vote_average.toFixed(1)}/10` : "N/A";
+                movieOverview.textContent = movie.overview || "No description available.";
+                moviePlatform.textContent = availablePlatform;
+
+                // Display poster
+                if (movie.poster_path) {
+                    moviePoster.src = `${tmdbImageBaseUrl}${movie.poster_path}`;
+                    moviePoster.classList.remove('hidden');
+                    moviePoster.classList.add('poster-animation');
+                } else {
+                    moviePoster.classList.add('hidden');
+                }
+
+                movieDetails.classList.remove('hidden');
+                movieResult.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+
+            } catch (error) {
+                console.error('Error fetching movie:', error);
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+                movieResult.classList.add('hidden');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Helper function to manage loading state
+        function setLoading(isLoading) {
+            if (isLoading) {
+                btnText.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                findMovieBtn.disabled = true;
+                findMovieBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                
+                languageSelect.disabled = true;
+                genreSelect.disabled = true;
+                platformSelect.disabled = true;
+                releaseDateSelect.disabled = true;
+                
+                errorMessage.classList.add('hidden');
+                movieResult.classList.add('hidden'); 
+                posterLoading.classList.remove('hidden'); 
+                
+                moviePoster.classList.remove('poster-animation');
+            } else {
+                btnText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                findMovieBtn.disabled = false;
+                findMovieBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                
+                languageSelect.disabled = false;
+                genreSelect.disabled = false;
+                platformSelect.disabled = false;
+                releaseDateSelect.disabled = false; 
+                
+                posterLoading.classList.add('hidden');
+            }
+        }
+
+        // Function to reset the app view
+        function resetApp() {
+            movieResult.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            
+            movieTitle.textContent = '';
+            moviePlatform.textContent = '';
+            movieYear.textContent = '';
+            movieRating.textContent = '';
+            movieOverview.textContent = '';
+            moviePoster.src = '';
+            moviePoster.classList.add('hidden');
+            movieDetails.classList.add('hidden');
+            moviePoster.classList.remove('poster-animation');
+
+            languageSelect.disabled = false;
+            genreSelect.disabled = false;
+            platformSelect.disabled = false;
+            releaseDateSelect.disabled = false;
+            
+            findMovieBtn.disabled = false;
+            findMovieBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btnText.classList.remove('hidden');
+            loadingSpinner.classList.add('hidden');
+        }
+
+        // Event listeners
+        findMovieBtn.addEventListener('click', getMovieSuggestion);
+        refreshBtn.addEventListener('click', resetApp);
+
+    </script>
+</body>
+</html>
